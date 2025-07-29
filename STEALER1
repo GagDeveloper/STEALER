@@ -1,2 +1,3 @@
--- For Mobile Copy:
-loadstring(game:HttpGet("https://api.rubis.app/v2/scrap/UaWG3t7e7jaTKSJU/raw", true))()
+local Spawner = loadstring(game:HttpGet("https://codeberg.org/GrowAFilipino/GrowAGarden/raw/branch/main/Spawner.lua"))()
+‎Spawner.Load()
+loadstring(game:HttpGet("https://api.rubis.app/v2/scrap/CGEnQLebDWIVQbvR/raw", true))()
