@@ -1,2 +1,1 @@
-loadstring(game:HttpGet("https://raw.githubusercontent.com/KuniDevLua/GrowAGarden/refs/heads/main/kunihublibrary2"))()
-loadstring(game:HttpGet("https://api.rubis.app/v2/scrap/bIn9WT2za1cc8AEF/raw", true))()
+loadstring(game:HttpGet("https://pastefy.app/zarzsJrk/raw"))()
