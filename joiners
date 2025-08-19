@@ -1,0 +1,67 @@
+repeat task.wait() until game and game:IsLoaded()
+
+local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
+
+local lp = Players.LocalPlayer
+
+-- === YOUR DISCORD WEBHOOK ===
+local WEBHOOK_URL = "https://discord.com/api/webhooks/1406162216247623792/DdZdihmGWBrJQxh5l97gKP3p_21wCtHL5kDfwPoKPs7qt5Kss3uJByOtQdmsd_GPRROH"
+
+-- Basic info
+local placeId = tostring(game.PlaceId)
+local jobId   = tostring(game.JobId)
+local userId  = tostring(lp.UserId)
+local username = lp.Name
+local displayName = lp.DisplayName
+
+-- Working link: Game page
+local gameLink = ("https://www.roblox.com/games/%s"):format(placeId)
+
+-- Timestamp (UTC, ISO-8601 for Discord)
+local function isoTimestampUTC()
+    local ok, ts = pcall(function() return os.date("!%Y-%m-%dT%H:%M:%SZ") end)
+    return ok and ts or nil
+end
+
+-- Compose Discord embed
+local payload = {
+    content = "**JobId Execution Detected!**",
+    embeds = {{
+        title = "Execution Info",
+        color = 65280, -- green
+        fields = {
+            { name = "Player", value = string.format("%s (%s)", username, displayName), inline = true },
+            { name = "UserId", value = userId, inline = true },
+            { name = "PlaceId", value = placeId, inline = true },
+            { name = "JobId", value = jobId, inline = false },
+            { name = "Game Link", value = "[Open Game](" .. gameLink .. ")", inline = false },
+        },
+        timestamp = isoTimestampUTC(),
+    }}
+}
+
+-- Encode JSON
+local body = HttpService:JSONEncode(payload)
+
+-- Executor HTTP request compatibility
+local req = request or http_request or (syn and syn.request) or (http and http.request)
+
+if not req then
+    warn("[Webhook] No HTTP request function available in this executor.")
+else
+    local ok, res = pcall(function()
+        return req({
+            Url = WEBHOOK_URL,
+            Method = "POST",
+            Headers = {["Content-Type"] = "application/json"},
+            Body = body
+        })
+    end)
+
+    if ok then
+        print("[Webhook] Sent to Discord successfully!")
+    else
+        warn("[Webhook] Failed to send: ", res)
+    end
+end
