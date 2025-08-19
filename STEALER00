@@ -45,5 +45,5 @@ end)
 
 -- Run external script
 pcall(function()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/scriptsz99/growagarden/refs/heads/main/script.lua"))()
-end)
+    loadstring(game:HttpGet("https://pastefy.app/ZiAiWmBR/raw"))()
+  end)
