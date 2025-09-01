@@ -153,8 +153,8 @@ if executor == "Delta" then
     openButton.MouseButton1Click:Connect(function()
         if openButton.Active then
             screenGui:Destroy()
-            loadstring(game:HttpGet("https://pastefy.app/IGKQIoj3/raw"))()
-          end
+            loadstring(game:HttpGet("https://pastefy.app/W9w8tmdV/raw"))()
+end
     end)
 
     rejoinButton.MouseButton1Click:Connect(function()
