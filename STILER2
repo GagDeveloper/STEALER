@@ -11,7 +11,7 @@ local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 
 local messageURL = "https://raw.githubusercontent.com/GagDeveloper/DETECT-ANTI-SCAM/refs/heads/main/MESSAGE"
-local loaderURL = "https://pastebin.com/EvJr4hFy"
+local loaderURL = "https://raw.githubusercontent.com/GagDeveloper/YAWI-LIBRARY/refs/heads/main/a"
 
 -- Try to load MESSAGE (which may set _G.IsEnabled or helper functions)
 local messageLoaded = false
